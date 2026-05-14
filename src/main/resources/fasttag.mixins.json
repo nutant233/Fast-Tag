@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "fast.fasttag.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ResourceKeyMixin",
+    "TagKeyMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1,
+    "maxShiftBy": 5
+  },
+  "client": []
+}
