@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.141'
     id 'io.freefair.lombok' version '9.2.0'
 }
 
@@ -18,11 +18,23 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-neoForge {
-    enable {
-        version = project.neo_version
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+}
+
+mixin {
+    add sourceSets.main, "${project.mod_id}.refmap.json"
+    config "${project.mod_id}.mixins.json"
+}
+
+legacyForge {
+    version = "${project.minecraft_version}-${project.forge_version}"
+
+    parchment {
+        minecraftVersion = project.parchment_minecraft_version
+        mappingsVersion = project.parchment_mappings_version
     }
 
     runs {
@@ -42,8 +54,8 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
-        clientData {
-            clientData()
+        data {
+            data()
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
 
@@ -58,14 +70,29 @@ neoForge {
             sourceSet(sourceSets.main)
         }
     }
+
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+afterEvaluate {
+    tasks.withType(org.gradle.jvm.tasks.Jar).configureEach {
+        manifest.attributes([
+                'MixinConfigs': "${mod_id}.mixins.json",
+                'Specification-Title': project.name,
+                'Specification-Version': mod_version,
+                'Implementation-Title': base.archivesName,
+                'Implementation-Version': version,
+                'Sealed': 'true'
+        ])
+    }
+}
+
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     var replaceProperties = [
-            neo_version            : neo_version,
-            neo_version_range      : neo_version_range,
+            forge_version            : forge_version,
+            forge_version_range      : forge_version_range,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
@@ -81,7 +108,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
 }
 
 sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
+legacyForge.ideSyncTask generateModMetadata
 
 idea {
     module {
@@ -91,6 +118,11 @@ idea {
 }
 
 dependencies {
+    implementation("org.lwjgl:lwjgl:3.3.2")
+    implementation("org.lwjgl:lwjgl-opengl:3.3.2")
+
     compileOnly("org.projectlombok:lombok:1.18.42")
     annotationProcessor("org.projectlombok:lombok:1.18.42")
+
+    annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
 }

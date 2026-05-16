@@ -4,6 +4,7 @@ pluginManagement {
         mavenLocal()
         gradlePluginPortal()
         maven { url = 'https://maven.neoforged.net/releases' }
+        maven { url = "https://maven.minecraftforge.net/" }
     }
 }
 
