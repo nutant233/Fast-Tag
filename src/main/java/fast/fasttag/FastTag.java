@@ -24,13 +24,19 @@ public class FastTag {
         return TAG_INTERNING_MAP.getCache(resourceKey);
     }
 
-    private static final Function<ResourceKey, MapCache<ResourceLocation, ResourceKey>> RESOURCEKEY_MAP_FUNCTION = k -> MapCache.build(resourcekeyFunction(k)).maker(MapMaker::weakValues).build();
+    private static final Function<ResourceLocation, MapCache<ResourceLocation, ResourceKey>> RESOURCE_LOCATION_TO_RESOURCEKEY_MAP_FUNCTION = k -> MapCache.build(resourcekeyFunction(k)).maker(MapMaker::weakValues).build();
+    private static final MapCache<ResourceLocation, MapCache<ResourceLocation, ResourceKey>> RESOURCE_LOCATION_TO_RESOURCEKEY_INTERNING_MAP = MapCache.build(RESOURCE_LOCATION_TO_RESOURCEKEY_MAP_FUNCTION).build();
+    private static final Function<ResourceKey, MapCache<ResourceLocation, ResourceKey>> RESOURCEKEY_MAP_FUNCTION = k ->RESOURCE_LOCATION_TO_RESOURCEKEY_INTERNING_MAP.getCache(k.location());
     private static final MapCache<ResourceKey, MapCache<ResourceLocation, ResourceKey>> RESOURCEKEY_INTERNING_MAP = MapCache.build(RESOURCEKEY_MAP_FUNCTION).build();
     private static final ResourceKey ROOT = new ResourceKey(BuiltInRegistries.ROOT_REGISTRY_NAME, BuiltInRegistries.ROOT_REGISTRY_NAME);
     private static final MapCache<ResourceLocation, ResourceKey> ROOT_REGISTRY_MAP = RESOURCEKEY_INTERNING_MAP.getCache(ROOT);
 
-    private static Function<ResourceLocation, ResourceKey> resourcekeyFunction(ResourceKey key) {
-        return id -> new ResourceKey(key.location(), id);
+    private static Function<ResourceLocation, ResourceKey> resourcekeyFunction(ResourceLocation key) {
+        return id -> new ResourceKey(key, id);
+    }
+
+    public static MapCache<ResourceLocation, ResourceKey> getResourceKeyCache(ResourceLocation location) {
+        return RESOURCE_LOCATION_TO_RESOURCEKEY_INTERNING_MAP.getCache(location);
     }
 
     public static MapCache<ResourceLocation, ResourceKey> getResourceKeyCache(ResourceKey<?> resourceKey) {

@@ -22,7 +22,6 @@ public class ResourceKeyMixin {
         return ResourceLocation.CODEC.xmap(cache::getCache, ResourceKey::location);
     }
 
-
     /**
      * @author nutant233
      * @reason optimize
@@ -43,10 +42,19 @@ public class ResourceKeyMixin {
 
     /**
      * @author nutant233
-     * @reason deprecated
+     * @reason optimize
      */
     @Overwrite
-    private static <T> ResourceKey<T> create(ResourceLocation registryName, ResourceLocation identifier) {
-        throw new UnsupportedOperationException("[FastTag] This method is deprecated");
+    public static ResourceKey create(ResourceLocation registryName, ResourceLocation identifier) {
+        return FastTag.getResourceKeyCache(registryName).getCache(identifier);
+    }
+
+    /**
+     * @author nutant233
+     * @reason optimize
+     */
+    @Overwrite(remap = false)
+    public boolean equals(Object o) {
+        return o == this;
     }
 }
