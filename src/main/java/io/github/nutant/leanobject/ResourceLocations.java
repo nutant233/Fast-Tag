@@ -4,6 +4,8 @@ import com.gto.fastcollection.cache.HashCache;
 import com.gto.fastcollection.cache.WeakValueHashCache;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.Locale;
+
 /**
  * Interning cache for {@link ResourceLocation}, keyed by namespace then path.
  *
@@ -21,7 +23,7 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class ResourceLocations {
 
-    private static final HashCache<String, WeakValueHashCache<String, ResourceLocation>> CACHES = new HashCache<>(n -> {
+    public static final HashCache<String, WeakValueHashCache<String, ResourceLocation>> CACHES = new HashCache<>(n -> {
         var ns = ResourceLocation.assertValidNamespace(n, n);
         return new WeakValueHashCache<>(path -> new ResourceLocation(ns, ResourceLocation.assertValidPath(ns, path)));
     });
@@ -29,13 +31,11 @@ public final class ResourceLocations {
     /** The {@code minecraft} sub-cache, hoisted - the overwhelmingly common namespace. */
     public static final WeakValueHashCache<String, ResourceLocation> DEFAULT_NAMESPACE = CACHES.getCache("minecraft");
 
+    public static final WeakValueHashCache<String, String> VARIANT_CACHE = new WeakValueHashCache<>(s -> s.toLowerCase(Locale.ROOT));
+
     private ResourceLocations() {
     }
 
-    /** The sub-cache for {@code namespace}; the namespace is validated when the sub-cache is created. */
-    public static WeakValueHashCache<String, ResourceLocation> namespace(String namespace) {
-        return CACHES.getCache(namespace);
-    }
 
     /** Returns the canonical instance for {@code namespace:path}, validating each part once. */
     public static ResourceLocation intern(String namespace, String path) {

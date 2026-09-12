@@ -72,6 +72,13 @@ public final class Config implements IMixinConfigPlugin {
                         "construction itself skips re-building the value list."
         );
 
+        registerFeaturePackage(
+                "model", false,
+                "Simplify Model Objects",
+                "Moves the model bakery's lookup maps and the baked models' face and selector lists " +
+                        "onto more compact containers. Client side."
+        );
+
         configFile = new File(FMLPaths.GAMEDIR.get().toFile(), "config/leanobject.toml");
 
         for (var feature : FEATURE_PACKAGES.values()) {

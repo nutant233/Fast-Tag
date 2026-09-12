@@ -23,5 +23,11 @@
     "defaultRequire": 1,
     "maxShiftBy": 5
   },
-  "client": []
+  "client": [
+    "model.ModelBakeryMixin",
+    "model.MultipartBakedModelMixin",
+    "model.SimpleBakedModelMixin",
+    "model.WeightedBakedModelMixin",
+    "resourcelocation.ModelResourceLocationMixin"
+  ]
 }

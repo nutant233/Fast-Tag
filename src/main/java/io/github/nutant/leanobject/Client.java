@@ -15,15 +15,7 @@ final class Client {
 
     private static void loggingIn(PlayerEvent.PlayerLoggedInEvent event) {
         Runtime runtime = Runtime.getRuntime();
-        for (int i = 0; i < 3; i++) {
-            System.gc();
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
+        System.gc();
         Config.LOGGER.info("Post-GC heap in use: {} MB (max {} MB)",
                 String.format("%.2f", (runtime.totalMemory() - runtime.freeMemory()) / (1024.0 * 1024.0)),
                 String.format("%.2f", runtime.maxMemory() / (1024.0 * 1024.0)));
