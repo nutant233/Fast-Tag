@@ -1,11 +1,9 @@
 package io.github.nutant.leanobject.mixin.nbt;
 
-import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagTypes;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,8 +31,7 @@ public abstract class ListTagMixin {
     private byte type;
 
     @Shadow
-    @Final
-    private List<Tag> list;
+    public List<Tag> list;
 
     @ModifyArg(method = "<init>()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/ListTag;<init>(Ljava/util/List;B)V", ordinal = 0))
     private static List<Tag> leanObject$useCompactList(List<Tag> original) {
@@ -64,13 +61,13 @@ public abstract class ListTagMixin {
     @Mixin(targets = "net.minecraft.nbt.ListTag$1")
     static class Type {
 
-        @ModifyVariable(method = "load(Ljava/io/DataInput;ILnet/minecraft/nbt/NbtAccounter;)Lnet/minecraft/nbt/ListTag;", at = @At(value = "INVOKE_ASSIGN", target = "Lcom/google/common/collect/Lists;newArrayListWithCapacity(I)Ljava/util/ArrayList;", remap = false))
-        private List<Tag> leanObject$useCompactList(List<Tag> list) {
+        @ModifyVariable(method = "loadList", require = 1, at = @At(value = "INVOKE_ASSIGN", target = "Lcom/google/common/collect/Lists;newArrayListWithCapacity(I)Ljava/util/ArrayList;", remap = false))
+        private static List<Tag> leanObject$useCompactList(List<Tag> list) {
             return new ObjectArrayList<>();
         }
 
-        @Redirect(method = "load(Ljava/io/DataInput;ILnet/minecraft/nbt/NbtAccounter;)Lnet/minecraft/nbt/ListTag;", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Lists;newArrayListWithCapacity(I)Ljava/util/ArrayList;", remap = false))
-        private ArrayList<?> leanObject$skipVanillaListAlloc(int capacity) {
+        @Redirect(method = "loadList", require = 1, at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Lists;newArrayListWithCapacity(I)Ljava/util/ArrayList;", remap = false))
+        private static ArrayList<?> leanObject$skipVanillaListAlloc(int capacity) {
             return null;
         }
     }

@@ -39,7 +39,7 @@ public final class ResourceLocations {
 
     /** Returns the canonical instance for {@code namespace:path}, validating each part once. */
     public static ResourceLocation intern(String namespace, String path) {
-        var cache = namespace(namespace);
+        var cache = CACHES.getCache(namespace);
         return cache.getCache(path, cache.createFunction());
     }
 }

@@ -66,13 +66,13 @@ public abstract class CompoundTagMixin {
     @Mixin(targets = "net.minecraft.nbt.CompoundTag$1")
     static class Type {
 
-        @ModifyVariable(method = "load(Ljava/io/DataInput;ILnet/minecraft/nbt/NbtAccounter;)Lnet/minecraft/nbt/CompoundTag;", at = @At(value = "INVOKE_ASSIGN", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", remap = false))
-        private Map<String, Tag> leanObject$useCompactMap(Map<String, Tag> map) {
+        @ModifyVariable(method = "loadCompound", require = 1, at = @At(value = "INVOKE_ASSIGN", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", remap = false))
+        private static Map<String, Tag> leanObject$useCompactMap(Map<String, Tag> map) {
             return new O2OOpenCacheHashMap<>();
         }
 
-        @Redirect(method = "load(Ljava/io/DataInput;ILnet/minecraft/nbt/NbtAccounter;)Lnet/minecraft/nbt/CompoundTag;", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", remap = false))
-        private HashMap<?, ?> leanObject$skipVanillaMapAlloc() {
+        @Redirect(method = "loadCompound", require = 1, at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", remap = false))
+        private static HashMap<?, ?> leanObject$skipVanillaMapAlloc() {
             return null;
         }
     }

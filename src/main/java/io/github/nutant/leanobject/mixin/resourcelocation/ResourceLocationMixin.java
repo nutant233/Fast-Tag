@@ -38,7 +38,7 @@ public abstract class ResourceLocationMixin {
      */
     @Overwrite
     public static ResourceLocation withDefaultNamespace(String path) {
-        return ResourceLocations.DEFAULT_NAMESPACE.getCache(path, ResourceLocations.DEFAULT_NAMESPACE.createFunction());
+        return ResourceLocations.DEFAULT_NAMESPACE.getCache(path);
     }
 
     /**
@@ -69,9 +69,9 @@ public abstract class ResourceLocationMixin {
             if (i > 0) {
                 return ResourceLocations.intern(location.substring(0, i), location.substring(i + 1));
             } else if (i == 0) {
-                return ResourceLocations.DEFAULT_NAMESPACE.getCache(location.substring(1), ResourceLocations.DEFAULT_NAMESPACE.createFunction());
+                return ResourceLocations.DEFAULT_NAMESPACE.getCache(location.substring(1));
             } else {
-                return ResourceLocations.DEFAULT_NAMESPACE.getCache(location, ResourceLocations.DEFAULT_NAMESPACE.createFunction());
+                return ResourceLocations.DEFAULT_NAMESPACE.getCache(location);
             }
         } catch (Exception e) {
             return null;

@@ -39,33 +39,49 @@ public abstract class ResourceLocationMixin {
             cancellable = true
     )
     private static void leanObject$withDefaultNamespace(String path, CallbackInfoReturnable<ResourceLocation> cir) {
-        cir.setReturnValue(ResourceLocations.DEFAULT_NAMESPACE.getCache(path, ResourceLocations.DEFAULT_NAMESPACE.createFunction()));
+        cir.setReturnValue(ResourceLocations.DEFAULT_NAMESPACE.getCache(path));
     }
 
     @Inject(
             method = "tryBuild",
-            at = @At(value = "NEW", target = "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;"),
+            at = @At("HEAD"),
             cancellable = true
     )
     private static void leanObject$tryBuild(String namespace, String path, CallbackInfoReturnable<ResourceLocation> cir) {
-        cir.setReturnValue(ResourceLocations.intern(namespace, path));
+        try {
+            cir.setReturnValue(ResourceLocations.intern(namespace, path));
+        } catch (Exception e) {
+            cir.setReturnValue(null);
+        }
     }
 
     @Inject(
             method = "tryBySeparator",
-            at = @At(value = "NEW", target = "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;"),
+            at = @At("HEAD"),
             cancellable = true
     )
     private static void leanObject$tryBySeparator(String location, char separator, CallbackInfoReturnable<ResourceLocation> cir) {
         int i = location.indexOf(separator);
         if (i > 0) {
-            cir.setReturnValue(ResourceLocations.intern(location.substring(0, i), location.substring(i + 1)));
+            try {
+                cir.setReturnValue(ResourceLocations.intern(location.substring(0, i), location.substring(i + 1)));
+            } catch (Exception e) {
+                cir.setReturnValue(null);
+            }
         } else if (i == 0) {
             var path = location.substring(1);
-            cir.setReturnValue(ResourceLocations.DEFAULT_NAMESPACE.getCache(path, ResourceLocations.DEFAULT_NAMESPACE.createFunction()));
-        } else {
-            cir.setReturnValue(ResourceLocations.DEFAULT_NAMESPACE.getCache(location, ResourceLocations.DEFAULT_NAMESPACE.createFunction()));
-        }
+            try {
+                cir.setReturnValue(ResourceLocations.DEFAULT_NAMESPACE.getCache(path));
+            } catch (Exception e) {
+                cir.setReturnValue(null);
+            }
+        }else {
+            try {
+            cir.setReturnValue(ResourceLocations.DEFAULT_NAMESPACE.getCache(location));
+            } catch (Exception e) {
+                cir.setReturnValue(null);
+            }
+            }
     }
 
     @Inject(
