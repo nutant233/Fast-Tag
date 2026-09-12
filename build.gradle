@@ -93,5 +93,9 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.42")
     annotationProcessor("org.projectlombok:lombok:1.18.42")
 
-    jarJar(implementation("com.gto.fastcollection:FastCollection:26.8.7"))
+    // FastCollection pulls fastutil 8.5.16 transitively; NeoForge 1.21.1 pins fastutil with a
+    // strict constraint (8.5.12), so the transitive copy must not be resolved or jarJar'd.
+    jarJar(implementation("com.gto.fastcollection:FastCollection:26.8.7")) {
+        exclude group: 'it.unimi.dsi', module: 'fastutil'
+    }
 }
