@@ -57,6 +57,13 @@ public final class Config implements IMixinConfigPlugin {
                         "the cost of a cache probe on each creation."
         );
 
+        registerFeaturePackage(
+                "nbt", false,
+                "Fast NBT Collection",
+                "Replaces the map and list backing CompoundTag and ListTag with leaner containers, " +
+                        "rewritten at the allocation site so the vanilla ones are never created."
+        );
+
         configFile = new File(FMLPaths.GAMEDIR.get().toFile(), "config/leanobject.toml");
 
         for (var feature : FEATURE_PACKAGES.values()) {

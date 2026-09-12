@@ -5,6 +5,8 @@
   "plugin": "io.github.nutant.leanobject.Config",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "nbt.CompoundTagMixin",
+    "nbt.ListTagMixin",
     "resourcelocation.ResourceLocationMixin",
     "resourcekey.ResourceKeyMixin",
     "resourcekey.safe.ResourceKeyMixin",
