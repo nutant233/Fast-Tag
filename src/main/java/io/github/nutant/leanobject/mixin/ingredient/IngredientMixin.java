@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -76,6 +77,7 @@ public abstract class IngredientMixin {
      * A stack that carries no component patch and holds a single item, i.e. the plain
      * {@code new ItemStack(item)} form that the item's shared ingredient represents.
      */
+    @Unique
     private static boolean leanObject$isBareStack(ItemStack stack) {
         return !stack.isEmpty() && stack.getCount() == 1 && stack.isComponentsPatchEmpty();
     }
