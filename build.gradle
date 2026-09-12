@@ -12,6 +12,7 @@ group = mod_group_id
 repositories {
     mavenCentral()
     mavenLocal()
+    maven { url = 'https://maven.gtodyssey.com/releases' }
 }
 
 base {
@@ -88,11 +89,9 @@ idea {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     compileOnly("org.projectlombok:lombok:1.18.42")
     annotationProcessor("org.projectlombok:lombok:1.18.42")
+
+    jarJar(implementation("com.gto.fastcollection:FastCollection:26.8.7"))
 }

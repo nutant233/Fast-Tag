@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.nutant.leanobject.mixin",
+  "plugin": "io.github.nutant.leanobject.Config",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "resourcekey.ResourceKeyMixin",
+    "resourcekey.safe.ResourceKeyMixin",
+    "tagkey.TagKeyMixin",
+    "tagkey.safe.TagKeyMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1,
+    "maxShiftBy": 5
+  },
+  "client": []
+}
