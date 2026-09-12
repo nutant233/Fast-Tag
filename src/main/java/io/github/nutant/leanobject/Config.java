@@ -50,7 +50,7 @@ public final class Config implements IMixinConfigPlugin {
         );
 
         registerFeaturePackage(
-                "resourceLocation", false,
+                "resourceLocation", true,
                 "ResourceLocation Deduplication & Identity Mode",
                 "One instance per namespace:path, with equals/hashCode reduced to identity. Saves both " +
                         "memory and the string comparisons every registry lookup would otherwise pay, at " +

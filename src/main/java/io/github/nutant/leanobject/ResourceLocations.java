@@ -19,4 +19,10 @@ public final class ResourceLocations {
     public static ResourceLocation intern(String namespace, String path) {
         return PATHS.getCache(namespace).getCache(path);
     }
+
+    /** Returns the canonical instance if one is currently alive, without creating one. */
+    public static ResourceLocation peek(String namespace, String path) {
+        var inner = PATHS.getIfPresent(namespace);
+        return inner == null ? null : inner.getIfPresent(path);
+    }
 }

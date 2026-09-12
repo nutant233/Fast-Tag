@@ -2,94 +2,103 @@ package io.github.nutant.leanobject.mixin.resourcelocation;
 
 import io.github.nutant.leanobject.ResourceLocations;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.function.UnaryOperator;
 
+/**
+ * The {@code @Overwrite} form of ResourceLocation interning.
+ *
+ * <p>Each method here validates exactly as vanilla does and then interns the already-validated pair,
+ * so the cache is only ever given a trusted lookup while the validation itself stays untouched. The
+ * validating entry point ({@code fromNamespaceAndPath}) is not overwritten - it delegates to
+ * {@code createUntrusted}, which is.
+ */
 @Mixin(value = ResourceLocation.class, priority = 100000)
 public abstract class ResourceLocationMixin {
 
+    @Shadow
+    private static String assertValidNamespace(String namespace, String path) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Shadow
+    private static String assertValidPath(String namespace, String path) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Shadow
+    public static boolean isValidNamespace(String namespace) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Shadow
+    public static boolean isValidPath(String path) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * @author nutant233
-     * @reason Intern every location, so one instance exists per namespace:path
+     * @reason Intern every trusted construction onto one instance per namespace:path
      */
     @Overwrite
     private static ResourceLocation createUntrusted(String namespace, String path) {
-        return ResourceLocations.intern(namespace, path);
+        return ResourceLocations.intern(assertValidNamespace(namespace, path), assertValidPath(namespace, path));
     }
 
     /**
      * @author nutant233
-     * @reason Intern by whole string, reusing the split enforced by the vanilla parser
+     * @reason Intern after validating
      */
-    @Inject(method = "parse", at = @At("RETURN"), cancellable = true)
-    private static void parse(String location, CallbackInfoReturnable<ResourceLocation> cir) {
-        var parsed = cir.getReturnValue();
-        if (parsed != null) {
-            cir.setReturnValue(ResourceLocations.intern(parsed.getNamespace(), parsed.getPath()));
+    @Overwrite
+    public static ResourceLocation withDefaultNamespace(String path) {
+        return ResourceLocations.intern("minecraft", assertValidPath("minecraft", path));
+    }
+
+    /**
+     * @author nutant233
+     * @reason Intern the trusted build path
+     */
+    @Overwrite
+    @Nullable
+    public static ResourceLocation tryBuild(String namespace, String path) {
+        return isValidNamespace(namespace) && isValidPath(path) ? ResourceLocations.intern(namespace, path) : null;
+    }
+
+    /**
+     * @author nutant233
+     * @reason Intern the separator form; parsing mirrors vanilla exactly
+     */
+    @Overwrite
+    @Nullable
+    public static ResourceLocation tryBySeparator(String location, char separator) {
+        int i = location.indexOf(separator);
+        if (i >= 0) {
+            String path = location.substring(i + 1);
+            if (!isValidPath(path)) {
+                return null;
+            } else if (i != 0) {
+                String namespace = location.substring(0, i);
+                return isValidNamespace(namespace) ? ResourceLocations.intern(namespace, path) : null;
+            } else {
+                return ResourceLocations.intern("minecraft", path);
+            }
+        } else {
+            return isValidPath(location) ? ResourceLocations.intern("minecraft", location) : null;
         }
     }
 
-    @Inject(method = "tryParse", at = @At("RETURN"), cancellable = true)
-    private static void tryParse(String location, CallbackInfoReturnable<ResourceLocation> cir) {
-        var parsed = cir.getReturnValue();
-        if (parsed != null) {
-            cir.setReturnValue(ResourceLocations.intern(parsed.getNamespace(), parsed.getPath()));
-        }
-    }
-
-    @Inject(method = "fromNamespaceAndPath", at = @At("RETURN"), cancellable = true)
-    private static void fromNamespaceAndPath(String namespace, String path, CallbackInfoReturnable<ResourceLocation> cir) {
-        cir.setReturnValue(ResourceLocations.intern(namespace, path));
-    }
-
-    @Inject(method = "withDefaultNamespace", at = @At("RETURN"), cancellable = true)
-    private static void withDefaultNamespace(String path, CallbackInfoReturnable<ResourceLocation> cir) {
-        cir.setReturnValue(ResourceLocations.intern("minecraft", path));
-    }
-
-    @Inject(method = "tryBuild", at = @At("RETURN"), cancellable = true)
-    private static void tryBuild(String namespace, String path, CallbackInfoReturnable<ResourceLocation> cir) {
-        var built = cir.getReturnValue();
-        if (built != null) {
-            cir.setReturnValue(ResourceLocations.intern(built.getNamespace(), built.getPath()));
-        }
-    }
-
-    @Inject(method = "bySeparator", at = @At("RETURN"), cancellable = true)
-    private static void bySeparator(String location, char separator, CallbackInfoReturnable<ResourceLocation> cir) {
-        var parsed = cir.getReturnValue();
-        if (parsed != null) {
-            cir.setReturnValue(ResourceLocations.intern(parsed.getNamespace(), parsed.getPath()));
-        }
-    }
-
-    @Inject(method = "tryBySeparator", at = @At("RETURN"), cancellable = true)
-    private static void tryBySeparator(String location, char separator, CallbackInfoReturnable<ResourceLocation> cir) {
-        var parsed = cir.getReturnValue();
-        if (parsed != null) {
-            cir.setReturnValue(ResourceLocations.intern(parsed.getNamespace(), parsed.getPath()));
-        }
-    }
-
-    @Inject(method = "withPath(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;", at = @At("RETURN"), cancellable = true)
-    private void withPath(String path, CallbackInfoReturnable<ResourceLocation> cir) {
-        var result = cir.getReturnValue();
-        if (result != null) {
-            cir.setReturnValue(ResourceLocations.intern(result.getNamespace(), result.getPath()));
-        }
-    }
-
-    @Inject(method = "withPath(Ljava/util/function/UnaryOperator;)Lnet/minecraft/resources/ResourceLocation;", at = @At("RETURN"), cancellable = true)
-    private void withPathOperator(UnaryOperator<String> operator, CallbackInfoReturnable<ResourceLocation> cir) {
-        var result = cir.getReturnValue();
-        if (result != null) {
-            cir.setReturnValue(ResourceLocations.intern(result.getNamespace(), result.getPath()));
-        }
+    /**
+     * @author nutant233
+     * @reason Intern the derived location, keeping the existing namespace
+     */
+    @Overwrite
+    public ResourceLocation withPath(String path) {
+        var self = (ResourceLocation) (Object) this;
+        return ResourceLocations.intern(self.getNamespace(), assertValidPath(self.getNamespace(), path));
     }
 
     /**

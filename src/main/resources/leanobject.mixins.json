@@ -8,6 +8,7 @@
     "nbt.CompoundTagMixin",
     "nbt.ListTagMixin",
     "resourcelocation.ResourceLocationMixin",
+    "resourcelocation.safe.ResourceLocationMixin",
     "resourcekey.ResourceKeyMixin",
     "resourcekey.safe.ResourceKeyMixin",
     "tagkey.TagKeyMixin",
