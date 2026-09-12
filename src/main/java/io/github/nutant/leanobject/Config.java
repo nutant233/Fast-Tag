@@ -49,6 +49,14 @@ public final class Config implements IMixinConfigPlugin {
                         "for cheaper HashMap lookups (items, fluids, entities, worlds, etc.)"
         );
 
+        registerFeaturePackage(
+                "resourceLocation", false,
+                "ResourceLocation Deduplication & Identity Mode",
+                "One instance per namespace:path, with equals/hashCode reduced to identity. Saves both " +
+                        "memory and the string comparisons every registry lookup would otherwise pay, at " +
+                        "the cost of a cache probe on each creation."
+        );
+
         configFile = new File(FMLPaths.GAMEDIR.get().toFile(), "config/leanobject.toml");
 
         for (var feature : FEATURE_PACKAGES.values()) {
