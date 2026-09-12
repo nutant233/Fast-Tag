@@ -64,6 +64,14 @@ public final class Config implements IMixinConfigPlugin {
                         "rewritten at the allocation site so the vanilla ones are never created."
         );
 
+        registerFeaturePackage(
+                "ingredient", false,
+                "Ingredient Deduplication",
+                "Shares one Ingredient per single-item or per-tag use, so its lazily built itemStacks " +
+                        "array and stackingIds list exist once instead of once per recipe, and the " +
+                        "construction itself skips re-building the value list."
+        );
+
         configFile = new File(FMLPaths.GAMEDIR.get().toFile(), "config/leanobject.toml");
 
         for (var feature : FEATURE_PACKAGES.values()) {

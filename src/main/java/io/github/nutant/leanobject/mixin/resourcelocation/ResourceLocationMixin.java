@@ -3,42 +3,25 @@ package io.github.nutant.leanobject.mixin.resourcelocation;
 import io.github.nutant.leanobject.ResourceLocations;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-import java.util.function.UnaryOperator;
-
 /**
  * The {@code @Overwrite} form of ResourceLocation interning.
  *
- * <p>Each method here validates exactly as vanilla does and then interns the already-validated pair,
- * so the cache is only ever given a trusted lookup while the validation itself stays untouched. The
- * validating entry point ({@code fromNamespaceAndPath}) is not overwritten - it delegates to
- * {@code createUntrusted}, which is.
+ * <p>No factory is supplied from here: both validations belong to the cache levels themselves, so a hit
+ * returns the canonical instance without validating anything and a miss runs the level's own factory.
+ * The validating entry point ({@code fromNamespaceAndPath}) is not overwritten; it delegates to
+ * {@code createUntrusted}.
  */
 @Mixin(value = ResourceLocation.class, priority = 100000)
 public abstract class ResourceLocationMixin {
 
     @Shadow
-    private static String assertValidNamespace(String namespace, String path) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Shadow
-    private static String assertValidPath(String namespace, String path) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Shadow
-    public static boolean isValidNamespace(String namespace) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Shadow
-    public static boolean isValidPath(String path) {
-        throw new UnsupportedOperationException();
-    }
+    @Final
+    private String namespace;
 
     /**
      * @author nutant233
@@ -46,48 +29,52 @@ public abstract class ResourceLocationMixin {
      */
     @Overwrite
     private static ResourceLocation createUntrusted(String namespace, String path) {
-        return ResourceLocations.intern(assertValidNamespace(namespace, path), assertValidPath(namespace, path));
+        return ResourceLocations.intern(namespace, path);
     }
 
     /**
      * @author nutant233
-     * @reason Intern after validating
+     * @reason Intern under the default namespace, validation handled by the cache level
      */
     @Overwrite
     public static ResourceLocation withDefaultNamespace(String path) {
-        return ResourceLocations.intern("minecraft", assertValidPath("minecraft", path));
+        return ResourceLocations.DEFAULT_NAMESPACE.getCache(path, ResourceLocations.DEFAULT_NAMESPACE.createFunction());
     }
 
     /**
      * @author nutant233
-     * @reason Intern the trusted build path
+     * @reason Intern the trusted build path; the cache's validation decides validity, so an invalid
+     * pair simply throws and becomes the {@code null} vanilla returns
      */
     @Overwrite
     @Nullable
     public static ResourceLocation tryBuild(String namespace, String path) {
-        return isValidNamespace(namespace) && isValidPath(path) ? ResourceLocations.intern(namespace, path) : null;
+        try {
+            return ResourceLocations.intern(namespace, path);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
      * @author nutant233
-     * @reason Intern the separator form; parsing mirrors vanilla exactly
+     * @reason Intern the separator form. Parsing mirrors vanilla, but validity is decided by the
+     * cache's validation throwing rather than by pre-checking, so nothing is validated on a hit
      */
     @Overwrite
     @Nullable
     public static ResourceLocation tryBySeparator(String location, char separator) {
-        int i = location.indexOf(separator);
-        if (i >= 0) {
-            String path = location.substring(i + 1);
-            if (!isValidPath(path)) {
-                return null;
-            } else if (i != 0) {
-                String namespace = location.substring(0, i);
-                return isValidNamespace(namespace) ? ResourceLocations.intern(namespace, path) : null;
+        try {
+            int i = location.indexOf(separator);
+            if (i > 0) {
+                return ResourceLocations.intern(location.substring(0, i), location.substring(i + 1));
+            } else if (i == 0) {
+                return ResourceLocations.DEFAULT_NAMESPACE.getCache(location.substring(1), ResourceLocations.DEFAULT_NAMESPACE.createFunction());
             } else {
-                return ResourceLocations.intern("minecraft", path);
+                return ResourceLocations.DEFAULT_NAMESPACE.getCache(location, ResourceLocations.DEFAULT_NAMESPACE.createFunction());
             }
-        } else {
-            return isValidPath(location) ? ResourceLocations.intern("minecraft", location) : null;
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -97,8 +84,7 @@ public abstract class ResourceLocationMixin {
      */
     @Overwrite
     public ResourceLocation withPath(String path) {
-        var self = (ResourceLocation) (Object) this;
-        return ResourceLocations.intern(self.getNamespace(), assertValidPath(self.getNamespace(), path));
+        return ResourceLocations.intern(this.namespace, path);
     }
 
     /**
